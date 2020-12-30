@@ -6,7 +6,7 @@ interface IWrapperOptions {
   useShadowDOM?: boolean;
 }
 
-const reactWebComponentWrapper = (reactComponent: React.FunctionComponent<any> | React.ComponentClass<any>, tagName: string, options: IWrapperOptions = { useShadowDOM: true }) => {
+export const reactWebComponentWrapper = (reactComponent: React.FunctionComponent<any> | React.ComponentClass<any>, tagName: string, options: IWrapperOptions = { useShadowDOM: true }) => {
   class WrapperElement extends HTMLElement {
     mountPoint: HTMLElement;
     renderedElement: Element | undefined;
@@ -49,8 +49,5 @@ const reactWebComponentWrapper = (reactComponent: React.FunctionComponent<any> |
   }
   customElements.define(tagName, WrapperElement);
 };
-
-export default reactWebComponentWrapper;
-
 
 
