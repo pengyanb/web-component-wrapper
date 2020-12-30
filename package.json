@@ -2,8 +2,8 @@
   "name": "@implicitcast/web-component-wrapper",
   "version": "0.0.1",
   "description": "web component wrapper",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "build": "rimraf dist && tsc",
     "postbuild": "copyfiles package.json package-lock.json README.md dist"
