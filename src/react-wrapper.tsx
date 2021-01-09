@@ -37,6 +37,9 @@ export const reactWebComponentWrapper = (reactComponent: React.FunctionComponent
         this.mountPoint = document.createElement('div');
         const shadowRoot = this.attachShadow({ mode: 'open' });
         shadowRoot.appendChild(this.mountPoint);
+        const styleTag = document.createElement('style');
+        styleTag.innerHTML = "/*__WebComponentInlineStyle__*/";
+        shadowRoot.appendChild(styleTag);
 
         retargetEvents(shadowRoot);
       } 
