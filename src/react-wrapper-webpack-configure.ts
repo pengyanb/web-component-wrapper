@@ -23,7 +23,7 @@ class WebComponentStylerPlugin {
       Object.keys(compilation.assets).forEach(fileName => {
         const asset = compilation.assets[fileName];
         if (isWebComponentJs(fileName) && Array.isArray(asset.children)) {
-          asset.children.forEach(child => {
+          asset.children.forEach((child: any) => {
             if (child._value && child._value.indexOf(CONST_INLINE_STYLE_PLACEHOLDER) !== -1) {
               child._value = child._value.replace(
                 CONST_INLINE_STYLE_PLACEHOLDER,
