@@ -1,0 +1,40 @@
+name: CI/CD Pipeline
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: "12"
+
+      - name: npm install
+        run: |
+          npm install
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN  }}
+
+      - name: npm run build
+        run: |
+          npm run build
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN  }}
+
+      - name: npm versioning
+        id: npmVersioning
+        uses: pengyanb/npm-versioning-action@v1
+        with:
+          release-branch: "master"
+          package-json-path: "./dist/package.json"
+
+      - name: npm publish
+        run: npm publish ./dist --tag ${{ steps.npmVersioning.outputs.tag }} --access public
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN  }}
