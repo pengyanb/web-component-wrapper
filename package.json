@@ -1,9 +1,13 @@
 {
   "name": "@implicitcast/web-component-wrapper",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "web component wrapper",
   "main": "index.js",
   "types": "index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pengyanb/web-component-wrapper"
+  },
   "scripts": {
     "build": "rimraf dist && tsc",
     "postbuild": "copyfiles package.json package-lock.json README.md dist"
