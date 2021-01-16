@@ -1,6 +1,7 @@
 import webpack from "webpack";
+import { ConcatSource } from "webpack-sources";
 import * as path from "path";
-import HtmlWebpackPlugin from "html-webpack-plugin";
+import HtmlWebpackPlugin, { } from "html-webpack-plugin";
 
 const CONST_WEB_COMPONENT_ENTRY_KEY = "webComponentEntry:";
 const CONST_USE_WEB_COMPONENT_KEY = "useWebComponent:";
@@ -18,12 +19,24 @@ class WebComponentStylerPlugin {
   apply(compiler: webpack.Compiler) {
     compiler.hooks.compilation.tap("WebComponentStylerPlugin_compiler", (compilation) => {
       if (htmlWebpackPlugin && typeof ((htmlWebpackPlugin.constructor as any).getHooks) === 'function') {
-        const htmlWebpackPluginhooks = (htmlWebpackPlugin.constructor as any).getHooks();
-        htmlWebpackPluginhooks.beforeEmit.tap("WebComponentStylerPlugin_beforeEmit", (data: any) => {
-          console.log("!!!!! WebComponentStylerPlugin_beforeEmit: ", data)
+        const htmlWebpackPluginhooks: HtmlWebpackPlugin.Hooks = (htmlWebpackPlugin.constructor as any).getHooks(compilation);
+        htmlWebpackPluginhooks.beforeAssetTagGeneration.tap('WebComponentStylerPlugin_beforeAssetTagGeneration', (data) => {
           if (useWebComponent) {
-
+            data.assets.js = data.assets.js.filter((jsPath: string) => {
+              return !jsPath.includes("main") || jsPath.includes("bundle");
+            });
+            data.assets.css = data.assets.css.filter((cssPath: string) => {
+              return !cssPath.includes("main") || cssPath.includes("bundle");
+            });
+          } else {
+            data.assets.js = data.assets.js.filter((jsPath: string) => {
+              return !jsPath.includes("webComponent");
+            });
+            data.assets.css = data.assets.css.filter((cssPath: string) => {
+              return !cssPath.includes("webComponent");
+            });
           }
+          return data;
         });
       }
     });
@@ -42,10 +55,10 @@ class WebComponentStylerPlugin {
         if (isWebComponentJs(fileName) && Array.isArray(asset.children)) {
           asset.children.forEach((child: any) => {
             if (child._value && child._value.indexOf(CONST_INLINE_STYLE_PLACEHOLDER) !== -1) {
-              child._value = child._value.replace(
+              compilation.updateAsset(fileName, () => new ConcatSource(child._value.replace(
                 CONST_INLINE_STYLE_PLACEHOLDER,
                 styleString
-              );
+              )));
             }
           });
         }
