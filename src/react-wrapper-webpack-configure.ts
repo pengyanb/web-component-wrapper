@@ -1,6 +1,6 @@
 import webpack from "webpack";
-import HtmlWebpackPlugin = require('html-webpack-plugin');
 import * as path from "path";
+import HtmlWebpackPlugin from "html-webpack-plugin";
 
 const CONST_WEB_COMPONENT_ENTRY_KEY = "webComponentEntry:";
 const CONST_USE_WEB_COMPONENT_KEY = "useWebComponent:";
@@ -12,18 +12,20 @@ const isWebComponentJs = (fileName: string) =>
 
 let webComponentEntry: string = "";
 let useWebComponent: boolean = false;
+let htmlWebpackPlugin: HtmlWebpackPlugin | undefined;
+
 class WebComponentStylerPlugin {
   apply(compiler: webpack.Compiler) {
     compiler.hooks.compilation.tap("WebComponentStylerPlugin_compiler", (compilation) => {
-      const htmlWebpackPluginhooks = HtmlWebpackPlugin.getHooks(compilation);
+      if (htmlWebpackPlugin && typeof ((htmlWebpackPlugin.constructor as any).getHooks) === 'function') {
+        const htmlWebpackPluginhooks = (htmlWebpackPlugin.constructor as any).getHooks();
+        htmlWebpackPluginhooks.beforeEmit.tap("WebComponentStylerPlugin_beforeEmit", (data: any) => {
+          console.log("!!!!! WebComponentStylerPlugin_beforeEmit: ", data)
+          if (useWebComponent) {
 
-      htmlWebpackPluginhooks.alterAssetTags.tap("WebComponentStylerPlugin_alterAssetTags", (data) => {
-        console.log("!!!!! WebComponentStylerPlugin_alterAssetTags: ", data)
-        if (useWebComponent) {
-
-        }
-        return data;
-      });
+          }
+        });
+      }
     });
     compiler.hooks.afterCompile.tap("WebComponentStylerPlugin_afterCompiler", (compilation) => {
       let styleString = "";
@@ -80,6 +82,11 @@ export const reactWrapperWebpackConfigure = (webpackConfig: webpack.Configuratio
     }
 
     webpackConfig.plugins?.push(new WebComponentStylerPlugin());
+    webpackConfig.plugins?.forEach((plugin) => {
+      if (plugin.constructor.name === "HtmlWebpackPlugin") {
+        htmlWebpackPlugin = plugin;
+      }
+    })
   }
   return webpackConfig;
 };
