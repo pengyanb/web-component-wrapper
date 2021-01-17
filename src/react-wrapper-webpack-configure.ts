@@ -1,15 +1,15 @@
 import webpack from "webpack";
-import { ConcatSource } from "webpack-sources";
+import { ReplaceSource } from "webpack-sources";
 import * as path from "path";
 import HtmlWebpackPlugin, { } from "html-webpack-plugin";
 
 const CONST_WEB_COMPONENT_ENTRY_KEY = "webComponentEntry:";
 const CONST_USE_WEB_COMPONENT_KEY = "useWebComponent:";
-const CONST_INLINE_STYLE_PLACEHOLDER = "/*__WebComponentInlineStyle__*/";
+const CONST_INLINE_STYLE_PLACEHOLDER = '"/*__WebComponentInlineStyle__*/"';
 
 const isCss = (fileName: string) => new RegExp(".css$").test(fileName);
-const isWebComponentJs = (fileName: string) =>
-  new RegExp("webComponent.*.chunk.js$").test(fileName);
+// const isWebComponentJs = (fileName: string) =>
+//   new RegExp("webComponent.*.chunk.js$").test(fileName);
 
 let webComponentEntry: string = "";
 let useWebComponent: boolean = false;
@@ -17,7 +17,7 @@ let htmlWebpackPlugin: HtmlWebpackPlugin | undefined;
 
 class WebComponentStylerPlugin {
   apply(compiler: webpack.Compiler) {
-    compiler.hooks.compilation.tap("WebComponentStylerPlugin_compiler", (compilation) => {
+    compiler.hooks.compilation.tap("WebComponentStylerPlugin_compilation", (compilation) => {
       if (htmlWebpackPlugin && typeof ((htmlWebpackPlugin.constructor as any).getHooks) === 'function') {
         const htmlWebpackPluginhooks: HtmlWebpackPlugin.Hooks = (htmlWebpackPlugin.constructor as any).getHooks(compilation);
         htmlWebpackPluginhooks.beforeAssetTagGeneration.tap('WebComponentStylerPlugin_beforeAssetTagGeneration', (data) => {
@@ -39,29 +39,30 @@ class WebComponentStylerPlugin {
           return data;
         });
       }
-    });
-    compiler.hooks.afterCompile.tap("WebComponentStylerPlugin_afterCompiler", (compilation) => {
-      let styleString = "";
-      const styleSet = new Set();
-      Object.keys(compilation.assets).forEach(fileName => {
-        const asset = compilation.assets[fileName];
-        if (isCss(fileName) && !styleSet.has(fileName)) {
-          styleSet.add(fileName);
-          styleString += asset.source();
-        }
-      });
-      Object.keys(compilation.assets).forEach(fileName => {
-        const asset = compilation.assets[fileName];
-        if (isWebComponentJs(fileName) && Array.isArray(asset.children)) {
-          asset.children.forEach((child: any) => {
-            if (child._value && child._value.indexOf(CONST_INLINE_STYLE_PLACEHOLDER) !== -1) {
-              compilation.updateAsset(fileName, () => new ConcatSource(child._value.replace(
-                CONST_INLINE_STYLE_PLACEHOLDER,
-                styleString
-              )));
+
+      compilation.hooks.optimizeChunkAssets.tap("WebComponentStylerPlugin_optimizeChunkAssets", chunks => {
+        let styleString = "";
+        chunks.map(chunk => {
+          chunk.files.map(file => {
+            if (isCss(file) && file.includes('webComponent')) {
+              styleString += compilation.assets[file].source();
             }
           });
-        }
+        });
+        chunks.map(chunk => {
+          chunk.files.map(file => {
+            const source = compilation.assets[file].source();
+            if (source.includes(CONST_INLINE_STYLE_PLACEHOLDER)) {
+              const start = source.indexOf(CONST_INLINE_STYLE_PLACEHOLDER);
+              compilation.updateAsset(file, function (old) {
+                var replaceSource = new ReplaceSource(old);
+                replaceSource.replace(start, start + CONST_INLINE_STYLE_PLACEHOLDER.length - 1, "`" + styleString + "`");
+                var newSource = replaceSource.source();
+                return replaceSource;
+              });
+            }
+          });
+        });
       });
     });
   }
