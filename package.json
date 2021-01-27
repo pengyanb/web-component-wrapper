@@ -1,6 +1,6 @@
 {
   "name": "@implicitcast/web-component-wrapper",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "web component wrapper",
   "main": "index.js",
   "types": "index.d.ts",
