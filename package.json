@@ -1,12 +1,12 @@
 {
   "name": "@implicitcast/web-component-wrapper",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "web component wrapper",
   "main": "index.js",
   "types": "index.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pengyanb/web-component-wrapper"
+    "url": "https://github.com/pengyanb/react-drag-drop-resizable"
   },
   "scripts": {
     "build": "rimraf dist && tsc",
